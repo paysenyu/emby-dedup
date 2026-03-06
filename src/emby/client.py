@@ -47,7 +47,13 @@ class EmbyClient:
             logger.error(f"Failed to get libraries: {e}")
             return []
 
-    def get_items(self, library_id: str, limit: int = 500, start_index: int = 0) -> Dict[str, Any]:
+    def get_items(
+        self,
+        library_id: str,
+        limit: int = 500,
+        start_index: int = 0,
+        min_date_last_saved: Optional[str] = None,
+    ) -> Dict[str, Any]:
         """获取媒体库内的媒体项"""
         try:
             url = (
@@ -59,6 +65,8 @@ class EmbyClient:
                 f"&Fields=Path,MediaSources,RunTimeTicks,ProductionYear,Overview"
                 f"&IncludeItemTypes=Movie,Series,Episode,Audio,MusicAlbum"
             )
+            if min_date_last_saved:
+                url += f"&MinDateLastSaved={min_date_last_saved}"
             response = self.session.get(url, headers=self._get_headers(), timeout=30)
             response.raise_for_status()
             return response.json()
