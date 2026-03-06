@@ -258,8 +258,8 @@ class DedupService:
         Delete all non-kept versions using the Emby/StrmAssistant DeleteVersion API.
         Returns {"deleted": int, "errors": [str]}.
         """
-        deleted = 0
-        errors = []
+        total_deleted = 0
+        all_errors = []
 
         for item in preview:
             item_id = item.get("item_id", "")
@@ -268,17 +268,12 @@ class DedupService:
                 continue
 
             try:
-                ok = client.delete_version(item_id, to_delete)
-                if ok:
-                    deleted += len(to_delete)
-                    logger.info(f"Deleted {len(to_delete)} version(s) from item {item_id} ({item.get('title')})")
-                else:
-                    msg = f"delete_version returned False for item {item_id}"
-                    errors.append(msg)
-                    logger.warning(msg)
+                result = client.delete_version(item_id, to_delete)
+                total_deleted += result.get('deleted', 0)
+                all_errors.extend(result.get('errors', []))
             except Exception as exc:
                 msg = f"Error deleting versions for item {item_id}: {exc}"
-                errors.append(msg)
+                all_errors.append(msg)
                 logger.error(msg)
 
-        return {"deleted": deleted, "errors": errors}
+        return {"deleted": total_deleted, "errors": all_errors}

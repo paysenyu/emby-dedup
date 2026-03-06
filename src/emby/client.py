@@ -100,41 +100,54 @@ class EmbyClient:
             logger.error(f"Failed to get item details for {item_id}: {e}")
             return None
 
-    def get_multi_version_items(self, limit: int = 500) -> List[Dict[str, Any]]:
-        """获取所有有多个版本的媒体（MediaSources数组长度>1）"""
-        try:
+    def get_multi_version_items(self) -> List[Dict[str, Any]]:
+        """获取所有有多个版本的媒体（分页拉取，过滤 MediaSources > 1）"""
+        all_items = []
+        start_index = 0
+        page_size = 500
+        while True:
             url = (
                 f"{self.server_url}/Users/{self.user_id}/Items"
                 f"?GroupByPresentationUniqueKey=true"
                 f"&Recursive=true"
                 f"&Fields=MediaSources,Path,RunTimeTicks,ProductionYear,Overview"
                 f"&IncludeItemTypes=Movie,Series"
-                f"&Limit={limit}"
+                f"&Limit={page_size}"
+                f"&StartIndex={start_index}"
             )
-            response = self.session.get(url, headers=self._get_headers(), timeout=60)
-            response.raise_for_status()
-            data = response.json()
+            try:
+                response = self.session.get(url, headers=self._get_headers(), timeout=60)
+                response.raise_for_status()
+                data = response.json()
+            except Exception as e:
+                logger.error(f"Failed to get multi-version items at offset {start_index}: {e}")
+                break
             items = data.get('Items', [])
-            multi_version = [item for item in items if len(item.get('MediaSources', [])) > 1]
-            logger.info(f"Found {len(multi_version)} multi-version items out of {len(items)} total")
-            return multi_version
-        except Exception as e:
-            logger.error(f"Failed to get multi-version items: {e}")
-            return []
+            total = data.get('TotalRecordCount', 0)
+            multi = [item for item in items if len(item.get('MediaSources', [])) > 1]
+            all_items.extend(multi)
+            start_index += len(items)
+            if start_index >= total or not items:
+                break
+        logger.info(f"Found {len(all_items)} multi-version items")
+        return all_items
 
-    def delete_version(self, item_id: str, version_ids: List[str]) -> bool:
-        """调用神医 DeleteVersion 接口删除指定版本"""
-        try:
-            url = f"{self.server_url}/Items/{item_id}/DeleteVersion"
-            response = self.session.post(
-                url,
-                headers=self._get_headers(),
-                json={"Ids": version_ids},
-                timeout=30,
-            )
-            response.raise_for_status()
-            logger.info(f"Deleted versions {version_ids} from item {item_id}")
-            return True
-        except Exception as e:
-            logger.error(f"Failed to delete versions {version_ids} from item {item_id}: {e}")
-            return False
+    def delete_version(self, item_id: str, version_ids: List[str]) -> Dict[str, Any]:
+        """
+        调用神医 StrmAssistant DeleteVersion 接口逐个删除版本。
+        每个版本ID发一次 POST /Items/{version_id}/DeleteVersion 请求。
+        返回 {'deleted': int, 'errors': list}
+        """
+        deleted = 0
+        errors = []
+        for vid in version_ids:
+            try:
+                url = f"{self.server_url}/Items/{vid}/DeleteVersion"
+                response = self.session.post(url, headers=self._get_headers(), json={}, timeout=30)
+                response.raise_for_status()
+                deleted += 1
+                logger.info(f"Deleted version {vid}")
+            except Exception as e:
+                logger.error(f"Failed to delete version {vid}: {e}")
+                errors.append(f"Failed to delete version {vid}: {e}")
+        return {'deleted': deleted, 'errors': errors}

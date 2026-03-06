@@ -91,7 +91,7 @@ def get_sync_logs():
     try:
         logs = SyncLog.query.order_by(SyncLog.sync_time.desc()).limit(50).all()
         return jsonify({'logs': [{'id': l.id,
-            'sync_time': l.sync_time.isoformat() if l.sync_time else None,
+            'sync_time': l.sync_time.strftime('%Y-%m-%dT%H:%M:%SZ') if l.sync_time else None,
             'status': l.status, 'items_synced': l.items_synced,
             'error_message': l.error_message} for l in logs]})
     except Exception as e:
@@ -141,7 +141,7 @@ def stats_overview():
             .order_by(SyncLog.sync_time.desc())
             .first()
         )
-        last_sync = last_log.sync_time.isoformat() if last_log and last_log.sync_time else None
+        last_sync = last_log.sync_time.strftime('%Y-%m-%dT%H:%M:%SZ') if last_log and last_log.sync_time else None
 
         # 媒体库数量：优先用 lib_name，fallback 到 path 解析
         library_count = (
