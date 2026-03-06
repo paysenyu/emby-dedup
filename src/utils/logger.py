@@ -1,11 +1,16 @@
 import logging
 import os
+import time
 from logging.handlers import TimedRotatingFileHandler
 
 def setup_logger(log_level: str = None, log_dir: str = None):
     log_level = log_level or os.getenv('LOG_LEVEL', 'INFO')
     log_dir = log_dir or os.getenv('LOG_DIR', '/app/logs')
     os.makedirs(log_dir, exist_ok=True)
+
+    # 日志时间戳跟随 TZ 环境变量（本地时区）
+    logging.Formatter.converter = time.localtime
+
     fmt = logging.Formatter('[%(asctime)s] %(levelname)s %(name)s - %(message)s')
     root = logging.getLogger()
     root.setLevel(getattr(logging, log_level.upper(), logging.INFO))
