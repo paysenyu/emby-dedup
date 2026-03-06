@@ -12,17 +12,10 @@ logger = logging.getLogger(__name__)
 BATCH_SIZE = 1000
 
 def _get_max_workers(app) -> int:
-    try:
-        with app.app_context():
-            pg_max = int(db.session.execute(
-                db.text('SHOW max_connections')
-            ).scalar())
-            workers = max(int(pg_max * 0.8), 8)
-            workers = min(workers, multiprocessing.cpu_count() * 4)
-            logger.info(f"PG max_connections={pg_max}, workers={workers}")
-            return workers
-    except Exception:
-        return 16
+    """Emby HTTP 并发：默认 8，可用 EMBY_FETCH_WORKERS 覆盖"""
+    workers = int(os.getenv('EMBY_FETCH_WORKERS', '8'))
+    logger.info(f"emby_workers={workers}")
+    return workers
 
 
 class EmbySyncService:
