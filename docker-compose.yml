@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  emby:
+    image: emby/embyserver:latest
+    ports:
+      - '8096:8096'
+      - '8920:8920'
+    volumes:
+      - ./emby:/config
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      - EMBY_ADMIN_USER=admin
+      - EMBY_ADMIN_PASSWORD=admin
+
+  postgres:
+    image: postgres:latest
+    ports:
+      - '5432:5432'
+    environment:
+      - POSTGRES_DB=emby
+      - POSTGRES_USER=emby
+      - POSTGRES_PASSWORD=emby123
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
