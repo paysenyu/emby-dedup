@@ -186,14 +186,14 @@
       <div class="value" id="totalItems">—</div>
     </div>
     <div class="card">
-      <div class="label">总存储大小</div>
-      <div class="value" id="totalSize">—</div>
-      <div class="sub">GB</div>
+      <div class="label">媒体库数量</div>
+      <div class="value" id="libraryCount">—</div>
+      <div class="sub">个库</div>
     </div>
     <div class="card">
-      <div class="label">总时长</div>
-      <div class="value" id="totalDuration">—</div>
-      <div class="sub">小时</div>
+      <div class="label">总存储大小</div>
+      <div class="value" id="totalSize">—</div>
+      <div class="sub" id="totalSizeUnit">TB</div>
     </div>
     <div class="card">
       <div class="label">最后同步时间</div>
@@ -222,7 +222,7 @@
         <tr>
           <th>库名</th>
           <th>媒体数量</th>
-          <th>存储大小 (GB)</th>
+          <th>存储大小</th>
           <th>占比</th>
         </tr>
       </thead>
@@ -246,6 +246,37 @@
     if (!s) return '—';
     const d = new Date(s);
     return d.toLocaleString('zh-CN', {year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'});
+  }
+
+  // 自动换算存储单位：输入 GB，输出带单位的字符串
+  function fmtSize(gb) {
+    const g = parseFloat(gb) || 0;
+    if (g >= 1024 * 1024) {
+      return (g / (1024 * 1024)).toFixed(2) + ' PB';
+    } else if (g >= 1024) {
+      return (g / 1024).toFixed(2) + ' TB';
+    } else {
+      return g.toFixed(2) + ' GB';
+    }
+  }
+
+  // 只返回数值部分，单位单独返回
+  function fmtSizeParts(gb) {
+    const g = parseFloat(gb) || 0;
+    if (g >= 1024 * 1024) {
+      return { val: (g / (1024 * 1024)).toFixed(2), unit: 'PB' };
+    } else if (g >= 1024) {
+      return { val: (g / 1024).toFixed(2), unit: 'TB' };
+    } else {
+      return { val: g.toFixed(2), unit: 'GB' };
+    }
+  }
+
+  // 判断是否是真正的媒体库名（排除看起来像具体剧集标题的条目）
+  // 规则：名字中含有括号+集数特征的算剧集标题，不是库名
+  function isLibraryName(name) {
+    // 过滤含有"（XX集）"或"(XX集)"特征的条目
+    return !/[（(]\d+集[）)]/.test(name);
   }
 
   function showToast(msg, ok) {
@@ -292,28 +323,35 @@
       const res = await fetch('/api/stats/overview');
       const d = await res.json();
       document.getElementById('totalItems').textContent = fmt(d.total_items);
-      document.getElementById('totalSize').textContent = fmt(d.total_size_gb);
-      document.getElementById('totalDuration').textContent = fmt(d.total_duration_hours);
+
+      // 存储大小自动换算
+      const sizeParts = fmtSizeParts(d.total_size_gb);
+      document.getElementById('totalSize').textContent = sizeParts.val;
+      document.getElementById('totalSizeUnit').textContent = sizeParts.unit;
+
       document.getElementById('lastSync').textContent = fmtDate(d.last_sync);
 
-      // Type bar chart
+      // 媒体类型分布：过滤掉 BoxSet，size 换算单位
+      const SKIP_TYPES = new Set(['BoxSet']);
       const types = d.by_type || {};
-      const maxCount = Math.max(...Object.values(types).map(t => t.count), 1);
+      const filteredTypes = Object.entries(types)
+        .filter(([name]) => !SKIP_TYPES.has(name))
+        .sort((a, b) => b[1].count - a[1].count);
+      const maxCount = Math.max(...filteredTypes.map(([, t]) => t.count), 1);
       const typeEl = document.getElementById('typeChart');
       typeEl.innerHTML = '';
-      Object.entries(types)
-        .sort((a, b) => b[1].count - a[1].count)
-        .forEach(([name, info]) => {
-          const pct = Math.round(info.count / maxCount * 100);
-          typeEl.insertAdjacentHTML('beforeend', `
-            <div class="bar-row">
-              <div class="bar-label">
-                <span>${name}</span>
-                <span>${fmt(info.count)} · ${info.size_gb} GB</span>
-              </div>
-              <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
-            </div>`);
-        });
+      filteredTypes.forEach(([name, info]) => {
+        const pct = Math.round(info.count / maxCount * 100);
+        const sizeStr = fmtSize(info.size_gb);
+        typeEl.insertAdjacentHTML('beforeend', `
+          <div class="bar-row">
+            <div class="bar-label">
+              <span>${name}</span>
+              <span>${fmt(info.count)} · ${sizeStr}</span>
+            </div>
+            <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+          </div>`);
+      });
     } catch (e) {
       console.error('Failed to load overview', e);
     }
@@ -346,16 +384,22 @@
     try {
       const res = await fetch('/api/stats/libraries');
       const d = await res.json();
-      const libs = d.libraries || [];
+      // 过滤掉看起来是具体剧集标题的条目，只保留真正的媒体库
+      const libs = (d.libraries || []).filter(l => isLibraryName(l.name));
       const maxCount = Math.max(...libs.map(l => l.count), 1);
+
+      // 更新媒体库数量卡片
+      document.getElementById('libraryCount').textContent = libs.length;
+
       const tbody = document.getElementById('libTable');
       if (!libs.length) { tbody.innerHTML = '<tr><td colspan="4" class="loading">暂无数据</td></tr>'; return; }
       tbody.innerHTML = libs.map(l => {
         const pct = Math.round(l.count / maxCount * 100);
+        const sizeStr = fmtSize(l.size_gb);
         return `<tr>
           <td>${l.name}</td>
           <td>${fmt(l.count)}</td>
-          <td>${l.size_gb}</td>
+          <td>${sizeStr}</td>
           <td>
             <span>${pct}%</span>
             <span class="pct-bar" style="width:${Math.max(pct, 2)}px"></span>
