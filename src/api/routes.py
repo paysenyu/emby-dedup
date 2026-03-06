@@ -1,6 +1,6 @@
 import os
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from flask import Blueprint, jsonify, request
 from sqlalchemy import func
 from src.database.db import db, Media, SyncLog
@@ -108,6 +108,8 @@ def stats_overview():
         total_size_bytes = db.session.query(func.sum(Media.size)).scalar() or 0
         total_duration_seconds = db.session.query(func.sum(Media.duration)).scalar() or 0
 
+        # 媒体类型分布（过滤 BoxSet）
+        SKIP_TYPES = {'BoxSet'}
         by_type_rows = (
             db.session.query(
                 Media.media_type,
@@ -119,14 +121,17 @@ def stats_overview():
         )
         by_type = {}
         for row in by_type_rows:
-            by_type[row.media_type or 'Unknown'] = {
+            t = row.media_type or 'Unknown'
+            if t in SKIP_TYPES:
+                continue
+            by_type[t] = {
                 'count': row.count,
                 'size_gb': round((row.size or 0) / (1024 ** 3), 2),
             }
 
         last_log = (
             SyncLog.query
-            .filter_by(status='success')
+            .filter(SyncLog.status.in_(['success', 'partial']))
             .order_by(SyncLog.sync_time.desc())
             .first()
         )
@@ -146,54 +151,47 @@ def stats_overview():
 
 @api_bp.route('/stats/libraries')
 def stats_libraries():
+    """
+    直接从 Emby API 获取媒体库列表（/Users/{id}/Views），
+    每个库的 ChildCount / ItemCount 就是库内顶层条目数。
+    存储大小从 DB 按 lib_name 字段聚合。
+    """
     try:
-        rows = (
+        client = get_emby_client()
+        emby_libs = client.get_libraries()  # [{Id, Name, ChildCount, ...}, ...]
+
+        # DB 按库名聚合存储大小（lib_name 列存的就是 Emby 库名）
+        size_rows = (
             db.session.query(
-                Media.path,
-                Media.media_type,
-                func.count(Media.id).label('count'),
+                Media.lib_name,
                 func.sum(Media.size).label('size'),
+                func.count(Media.id).label('count'),
             )
-            .filter(Media.path.isnot(None))
-            .group_by(Media.path, Media.media_type)
+            .filter(Media.lib_name.isnot(None))
+            .group_by(Media.lib_name)
             .all()
         )
+        size_map = {r.lib_name: {'size': r.size or 0, 'count': r.count} for r in size_rows}
 
-        libraries = {}
-        for row in rows:
-            # Parse library name from path segments.
-            # Expected structure: /cd2/115open/Media/<category>/<library>/<filename>
-            # e.g. /cd2/115open/Media/电影/外语电影/SomeMovie.mkv → library = 外语电影 (index 4)
-            parts = [p for p in (row.path or '').split('/') if p]
-            if len(parts) >= 5:
-                lib_name = parts[4]
-            elif len(parts) >= 4:
-                lib_name = parts[3]
-            else:
-                lib_name = parts[-1] if parts else 'Unknown'
-
-            if lib_name not in libraries:
-                libraries[lib_name] = {'name': lib_name, 'count': 0, 'size_bytes': 0, 'types': {}}
-            libraries[lib_name]['count'] += row.count
-            libraries[lib_name]['size_bytes'] += row.size or 0
-            libraries[lib_name]['types'][row.media_type or 'Unknown'] = (
-                libraries[lib_name]['types'].get(row.media_type or 'Unknown', 0) + row.count
+        libraries = []
+        for lib in emby_libs:
+            name = lib.get('Name', '')
+            # Emby Views API 返回的子项数量字段
+            item_count = (
+                lib.get('ChildCount') or
+                lib.get('ItemCount') or
+                size_map.get(name, {}).get('count', 0)
             )
+            size_bytes = size_map.get(name, {}).get('size', 0)
+            libraries.append({
+                'name': name,
+                'count': item_count,
+                'size_gb': round(size_bytes / (1024 ** 3), 2),
+                'collection_type': lib.get('CollectionType', ''),
+            })
 
-        result = sorted(
-            [
-                {
-                    'name': v['name'],
-                    'count': v['count'],
-                    'size_gb': round(v['size_bytes'] / (1024 ** 3), 2),
-                    'types': v['types'],
-                }
-                for v in libraries.values()
-            ],
-            key=lambda x: x['count'],
-            reverse=True,
-        )
-        return jsonify({'libraries': result})
+        libraries.sort(key=lambda x: x['count'], reverse=True)
+        return jsonify({'libraries': libraries, 'total': len(libraries)})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
