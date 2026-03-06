@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Emby Media Manager</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #1a1a2e;
+    --card: #16213e;
+    --accent: #0f3460;
+    --red: #e94560;
+    --text: #e0e0e0;
+    --muted: #8892a4;
+    --border: #1e2d4a;
+  }
+
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+
+  /* ── Nav ── */
+  nav {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    height: 60px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  nav .brand { font-size: 1.2rem; font-weight: 700; color: #fff; letter-spacing: .5px; }
+  nav .brand span { color: var(--red); }
+  nav .actions { display: flex; align-items: center; gap: 12px; }
+  .status-dot {
+    width: 10px; height: 10px; border-radius: 50%; background: #4caf50;
+    display: inline-block; margin-right: 6px;
+    box-shadow: 0 0 6px #4caf50;
+    animation: pulse 2s infinite;
+  }
+  .status-dot.syncing { background: #ff9800; box-shadow: 0 0 6px #ff9800; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+  .status-label { font-size: .85rem; color: var(--muted); }
+
+  button {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-size: .85rem;
+    transition: background .2s;
+  }
+  button:hover { background: var(--red); }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+
+  /* ── Main ── */
+  main { max-width: 1400px; margin: 0 auto; padding: 24px 16px; }
+
+  h2 { font-size: 1rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; }
+
+  /* ── Stats Cards ── */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .card .label { font-size: .8rem; color: var(--muted); margin-bottom: 8px; }
+  .card .value { font-size: 2rem; font-weight: 700; color: #fff; }
+  .card .sub { font-size: .8rem; color: var(--muted); margin-top: 4px; }
+
+  /* ── Charts Row ── */
+  .charts-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  @media (max-width: 768px) { .charts-row { grid-template-columns: 1fr; } }
+
+  .chart-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .chart-card h3 { font-size: .9rem; color: var(--muted); margin-bottom: 16px; text-transform: uppercase; letter-spacing: .5px; }
+
+  /* horizontal bar chart */
+  .bar-row { margin-bottom: 12px; }
+  .bar-row .bar-label { display: flex; justify-content: space-between; font-size: .82rem; margin-bottom: 4px; }
+  .bar-track { background: var(--border); border-radius: 4px; height: 10px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--accent), var(--red)); transition: width .6s ease; }
+
+  /* year chart */
+  .year-chart { display: flex; align-items: flex-end; gap: 4px; height: 120px; overflow-x: auto; padding-bottom: 24px; }
+  .year-col { display: flex; flex-direction: column; align-items: center; min-width: 36px; }
+  .year-bar { width: 28px; border-radius: 4px 4px 0 0; background: linear-gradient(0deg, var(--accent), var(--red)); transition: height .6s ease; }
+  .year-label { font-size: .65rem; color: var(--muted); margin-top: 4px; writing-mode: vertical-rl; transform: rotate(180deg); }
+
+  /* ── Table ── */
+  .table-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 32px;
+    overflow-x: auto;
+  }
+  .table-card h3 { font-size: .9rem; color: var(--muted); margin-bottom: 16px; text-transform: uppercase; letter-spacing: .5px; }
+  table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+  th { text-align: left; color: var(--muted); font-weight: 600; padding: 8px 12px; border-bottom: 1px solid var(--border); }
+  td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,.03); }
+  .pct-bar { display: inline-block; height: 6px; border-radius: 3px; background: var(--red); vertical-align: middle; margin-left: 8px; }
+
+  /* ── Logs ── */
+  .logs-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .logs-card h3 { font-size: .9rem; color: var(--muted); margin-bottom: 16px; text-transform: uppercase; letter-spacing: .5px; }
+  .log-item { display: flex; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: .82rem; }
+  .log-item:last-child { border-bottom: none; }
+  .log-badge { padding: 2px 8px; border-radius: 4px; font-size: .72rem; font-weight: 600; }
+  .log-badge.success { background: rgba(76,175,80,.2); color: #4caf50; }
+  .log-badge.error { background: rgba(233,69,96,.2); color: var(--red); }
+  .log-badge.running { background: rgba(255,152,0,.2); color: #ff9800; }
+  .log-meta { color: var(--muted); }
+
+  /* ── Loading / Error ── */
+  .loading { text-align: center; color: var(--muted); padding: 40px; }
+  .error-msg { color: var(--red); font-size: .85rem; padding: 8px 0; }
+
+  /* ── Toast ── */
+  #toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 20px;
+    font-size: .85rem;
+    opacity: 0;
+    transition: opacity .3s;
+    z-index: 9999;
+  }
+  #toast.show { opacity: 1; }
+  #toast.ok { border-color: #4caf50; color: #4caf50; }
+  #toast.err { border-color: var(--red); color: var(--red); }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="brand">Emby <span>Media</span> Manager</div>
+  <div class="actions">
+    <span class="status-dot" id="statusDot"></span>
+    <span class="status-label" id="statusLabel">就绪</span>
+    <button id="btnSync" onclick="triggerSync(false)">立即同步</button>
+    <button id="btnIncSync" onclick="triggerSync(true)">增量同步</button>
+  </div>
+</nav>
+
+<main>
+  <!-- Stats Cards -->
+  <h2>总览</h2>
+  <div class="cards">
+    <div class="card">
+      <div class="label">总媒体数</div>
+      <div class="value" id="totalItems">—</div>
+    </div>
+    <div class="card">
+      <div class="label">总存储大小</div>
+      <div class="value" id="totalSize">—</div>
+      <div class="sub">GB</div>
+    </div>
+    <div class="card">
+      <div class="label">总时长</div>
+      <div class="value" id="totalDuration">—</div>
+      <div class="sub">小时</div>
+    </div>
+    <div class="card">
+      <div class="label">最后同步时间</div>
+      <div class="value" style="font-size:1rem;line-height:1.6" id="lastSync">—</div>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <h2>分布图表</h2>
+  <div class="charts-row">
+    <div class="chart-card">
+      <h3>媒体类型分布</h3>
+      <div id="typeChart"><div class="loading">加载中…</div></div>
+    </div>
+    <div class="chart-card">
+      <h3>年份分布（近10年）</h3>
+      <div id="yearChart" class="year-chart"><div class="loading">加载中…</div></div>
+    </div>
+  </div>
+
+  <!-- Libraries Table -->
+  <div class="table-card">
+    <h3>媒体库统计</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>库名</th>
+          <th>媒体数量</th>
+          <th>存储大小 (GB)</th>
+          <th>占比</th>
+        </tr>
+      </thead>
+      <tbody id="libTable"><tr><td colspan="4" class="loading">加载中…</td></tr></tbody>
+    </table>
+  </div>
+
+  <!-- Sync Logs -->
+  <div class="logs-card">
+    <h3>同步日志（最近5条）</h3>
+    <div id="logs"><div class="loading">加载中…</div></div>
+  </div>
+</main>
+
+<div id="toast"></div>
+
+<script>
+  // ── Helpers ──────────────────────────────────────────────
+  function fmt(n) { return Number(n).toLocaleString('zh-CN'); }
+  function fmtDate(s) {
+    if (!s) return '—';
+    const d = new Date(s);
+    return d.toLocaleString('zh-CN', {year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'});
+  }
+
+  function showToast(msg, ok) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = 'show ' + (ok ? 'ok' : 'err');
+    clearTimeout(el._t);
+    el._t = setTimeout(() => { el.className = ''; }, 3500);
+  }
+
+  // ── Sync ─────────────────────────────────────────────────
+  async function triggerSync(incremental) {
+    const dot = document.getElementById('statusDot');
+    const label = document.getElementById('statusLabel');
+    const b1 = document.getElementById('btnSync');
+    const b2 = document.getElementById('btnIncSync');
+
+    dot.classList.add('syncing');
+    label.textContent = incremental ? '增量同步中…' : '同步中…';
+    b1.disabled = b2.disabled = true;
+
+    try {
+      const url = incremental ? '/api/emby/sync/incremental' : '/api/emby/sync';
+      const res = await fetch(url, { method: 'POST' });
+      const data = await res.json();
+      if (res.ok) {
+        showToast((data.message || '同步完成') + (data.items_synced != null ? `（${fmt(data.items_synced)} 条）` : ''), true);
+        loadAll();
+      } else {
+        showToast('同步失败：' + (data.error || '未知错误'), false);
+      }
+    } catch (e) {
+      showToast('网络错误：' + e.message, false);
+    } finally {
+      dot.classList.remove('syncing');
+      label.textContent = '就绪';
+      b1.disabled = b2.disabled = false;
+    }
+  }
+
+  // ── Load Overview ─────────────────────────────────────────
+  async function loadOverview() {
+    try {
+      const res = await fetch('/api/stats/overview');
+      const d = await res.json();
+      document.getElementById('totalItems').textContent = fmt(d.total_items);
+      document.getElementById('totalSize').textContent = fmt(d.total_size_gb);
+      document.getElementById('totalDuration').textContent = fmt(d.total_duration_hours);
+      document.getElementById('lastSync').textContent = fmtDate(d.last_sync);
+
+      // Type bar chart
+      const types = d.by_type || {};
+      const maxCount = Math.max(...Object.values(types).map(t => t.count), 1);
+      const typeEl = document.getElementById('typeChart');
+      typeEl.innerHTML = '';
+      Object.entries(types)
+        .sort((a, b) => b[1].count - a[1].count)
+        .forEach(([name, info]) => {
+          const pct = Math.round(info.count / maxCount * 100);
+          typeEl.insertAdjacentHTML('beforeend', `
+            <div class="bar-row">
+              <div class="bar-label">
+                <span>${name}</span>
+                <span>${fmt(info.count)} · ${info.size_gb} GB</span>
+              </div>
+              <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+            </div>`);
+        });
+    } catch (e) {
+      console.error('Failed to load overview', e);
+    }
+  }
+
+  // ── Load Years ────────────────────────────────────────────
+  async function loadYears() {
+    try {
+      const res = await fetch('/api/stats/years');
+      const d = await res.json();
+      const years = (d.years || []).slice(0, 10).reverse();
+      const maxCount = Math.max(...years.map(y => y.count), 1);
+      const el = document.getElementById('yearChart');
+      el.innerHTML = '';
+      years.forEach(y => {
+        const h = Math.max(Math.round(y.count / maxCount * 100), 4);
+        el.insertAdjacentHTML('beforeend', `
+          <div class="year-col">
+            <div class="year-bar" style="height:${h}px" title="${y.year}: ${fmt(y.count)}"></div>
+            <div class="year-label">${y.year}</div>
+          </div>`);
+      });
+    } catch (e) {
+      console.error('Failed to load years', e);
+    }
+  }
+
+  // ── Load Libraries ────────────────────────────────────────
+  async function loadLibraries() {
+    try {
+      const res = await fetch('/api/stats/libraries');
+      const d = await res.json();
+      const libs = d.libraries || [];
+      const maxCount = Math.max(...libs.map(l => l.count), 1);
+      const tbody = document.getElementById('libTable');
+      if (!libs.length) { tbody.innerHTML = '<tr><td colspan="4" class="loading">暂无数据</td></tr>'; return; }
+      tbody.innerHTML = libs.map(l => {
+        const pct = Math.round(l.count / maxCount * 100);
+        return `<tr>
+          <td>${l.name}</td>
+          <td>${fmt(l.count)}</td>
+          <td>${l.size_gb}</td>
+          <td>
+            <span>${pct}%</span>
+            <span class="pct-bar" style="width:${Math.max(pct, 2)}px"></span>
+          </td>
+        </tr>`;
+      }).join('');
+    } catch (e) {
+      console.error('Failed to load libraries', e);
+    }
+  }
+
+  // ── Load Logs ─────────────────────────────────────────────
+  async function loadLogs() {
+    try {
+      const res = await fetch('/api/sync/logs');
+      const d = await res.json();
+      const logs = (d.logs || []).slice(0, 5);
+      const el = document.getElementById('logs');
+      if (!logs.length) { el.innerHTML = '<div class="loading">暂无日志</div>'; return; }
+      el.innerHTML = logs.map(l => `
+        <div class="log-item">
+          <span class="log-badge ${l.status || ''}">${l.status || '?'}</span>
+          <span class="log-meta">${fmtDate(l.sync_time)}</span>
+          <span>同步 ${fmt(l.items_synced || 0)} 条</span>
+          ${l.error_message ? `<span class="error-msg">${l.error_message}</span>` : ''}
+        </div>`).join('');
+    } catch (e) {
+      console.error('Failed to load logs', e);
+    }
+  }
+
+  // ── Boot ──────────────────────────────────────────────────
+  function loadAll() {
+    loadOverview();
+    loadYears();
+    loadLibraries();
+    loadLogs();
+  }
+
+  document.addEventListener('DOMContentLoaded', loadAll);
+</script>
+</body>
+</html>

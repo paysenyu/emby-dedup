@@ -3,7 +3,7 @@ Flask Application Entry Point
 """
 import os
 import logging
-from flask import Flask
+from flask import Flask, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
@@ -19,7 +19,8 @@ load_dotenv()
 
 def create_app():
     """Create and configure Flask application"""
-    app = Flask(__name__)
+    static_folder = os.path.join(os.path.dirname(__file__), 'static')
+    app = Flask(__name__, static_folder=static_folder)
     
     # Configuration
     app.config['SQLALCHEMY_DATABASE_URI'] = (
@@ -36,6 +37,11 @@ def create_app():
     
     # Register blueprints
     app.register_blueprint(api_bp, url_prefix='/api')
+
+    # Root route – serve the single-page frontend
+    @app.route('/')
+    def index():
+        return send_from_directory(app.static_folder, 'index.html')
     
     # Create tables
     with app.app_context():
