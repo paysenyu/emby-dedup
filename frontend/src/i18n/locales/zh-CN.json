@@ -6,6 +6,10 @@
       "settings": "设置",
       "analysisGroups": "洗板去重",
       "metadataIssues": "元数据问题"
+    },
+    "footer": {
+      "version": "版本 v{version}",
+      "githubAria": "打开 GitHub 仓库"
     }
   },
   "common": {
@@ -57,6 +61,16 @@
       "seriesCount": "剧集数量",
       "episodeCount": "集数",
       "storageTotal": "总存储"
+    },
+    "library": {
+      "title": "媒体库资源概览",
+      "empty": "未配置媒体库，请先在设置页勾选并同步。",
+      "status": {
+        "synced": "已同步",
+        "unsynced": "未同步",
+        "syncing": "同步中",
+        "failed": "同步失败"
+      }
     },
     "desc": "显示 Emby 媒体库统计信息。"
   },
