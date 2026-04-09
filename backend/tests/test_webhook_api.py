@@ -1,4 +1,4 @@
-import unittest
+﻿import unittest
 import tempfile
 from pathlib import Path
 
@@ -177,9 +177,54 @@ class WebhookApiTests(unittest.TestCase):
         finally:
             db.close()
 
+    def _add_manual_delete_seed_without_queue(self) -> int:
+        db = self.SessionLocal()
+        try:
+            media = MediaItem(
+                emby_item_id="emby-manual-1",
+                media_source_id="ms-manual-1",
+                delete_target_item_id="target-manual-1",
+                library_name="TV",
+                item_type="Episode",
+                title="Manual Deleted",
+                tmdb_id="777777",
+                season_number=1,
+                episode_number=1,
+                subtitle_streams_json="[]",
+                has_chinese_subtitle=0,
+                eligible_for_dedup=1,
+                is_excluded_path=0,
+                path="/mnt/media/manual-deleted.mkv",
+                raw_json="{}",
+                created_at="2026-01-01T00:00:00",
+                updated_at="2026-01-01T00:00:00",
+            )
+            db.add(media)
+            db.commit()
+            db.refresh(media)
+            db.add(
+                AnalysisResult(
+                    group_key="episode:777777:1:1",
+                    media_kind="episode",
+                    tmdb_id="777777",
+                    title="Manual Deleted",
+                    item_id=int(media.id),
+                    emby_item_id="emby-manual-1",
+                    action="delete_candidate",
+                    reason_json="{}",
+                    is_manual_override=0,
+                    created_at="2026-01-01T00:00:00",
+                    updated_at="2026-01-01T00:00:00",
+                )
+            )
+            db.commit()
+            return int(media.id)
+        finally:
+            db.close()
+
     def test_token_validation_query_priority_and_body_fallback(self) -> None:
         body_only = self.client.post(
-            "/webhook/emby",
+            "/api/webhook/emby",
             json={
                 "Token": "tok",
                 "Event": "system.webhooktest",
@@ -190,7 +235,7 @@ class WebhookApiTests(unittest.TestCase):
         self.assertEqual(body_only.json(), {"status": "ok", "matched": 0, "updated": 0})
 
         query_overrides_body = self.client.post(
-            "/webhook/emby?token=bad",
+            "/api/webhook/emby?token=bad",
             json={
                 "Token": "tok",
                 "Event": "system.webhooktest",
@@ -201,7 +246,7 @@ class WebhookApiTests(unittest.TestCase):
 
     def test_invalid_multipart_payload_returns_safe_response(self) -> None:
         response = self.client.post(
-            "/webhook/emby?token=tok",
+            "/api/webhook/emby?token=tok",
             files={
                 "Event": (None, "library.deleted"),
                 "User": (None, '{"Name":"tester","Id":"u1"'),
@@ -215,7 +260,7 @@ class WebhookApiTests(unittest.TestCase):
 
     def test_library_new_item_ingest_via_webhook_api(self) -> None:
         response = self.client.post(
-            "/webhook/emby?token=tok",
+            "/api/webhook/emby?token=tok",
             json={
                 "Event": "library.new",
                 "Item": {
@@ -250,7 +295,7 @@ class WebhookApiTests(unittest.TestCase):
     def test_library_deleted_updates_queue_and_cleans_local_rows(self) -> None:
         media_id = self._add_delete_queue_seed()
         response = self.client.post(
-            "/webhook/emby?token=tok",
+            "/api/webhook/emby?token=tok",
             json={
                 "Event": "library.deleted",
                 "ItemId": "target-delete-1",
@@ -279,7 +324,7 @@ class WebhookApiTests(unittest.TestCase):
     def test_deep_delete_with_mount_paths_updates_queue(self) -> None:
         media_id = self._add_delete_queue_seed()
         response = self.client.post(
-            "/webhook/emby?token=tok",
+            "/api/webhook/emby?token=tok",
             json={
                 "Event": "deep.delete",
                 "Description": "Test event\nMount Paths:\n/mnt/media/delete-me.mkv\n/mnt/media/extra.mkv\n",
@@ -308,7 +353,7 @@ class WebhookApiTests(unittest.TestCase):
     def test_multipart_deletedfiles_json_string_matches_by_path(self) -> None:
         media_id = self._add_path_only_delete_queue_seed()
         response = self.client.post(
-            "/webhook/emby?token=tok",
+            "/api/webhook/emby?token=tok",
             files={
                 "Event": (None, "deep.delete"),
                 "DeletedFiles": (None, '["/mnt/media/path-only.mkv"]'),
@@ -335,6 +380,32 @@ class WebhookApiTests(unittest.TestCase):
         finally:
             db.close()
 
+    def test_library_deleted_without_queue_still_cleans_local_snapshot(self) -> None:
+        media_id = self._add_manual_delete_seed_without_queue()
+        response = self.client.post(
+            "/api/webhook/emby?token=tok",
+            json={
+                "Event": "library.deleted",
+                "ItemId": "target-manual-1",
+                "DeletedFiles": ["/mnt/media/manual-deleted.mkv"],
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        body = response.json()
+        self.assertEqual(body["status"], "ok")
+        self.assertGreaterEqual(int(body["matched"]), 1)
+        self.assertGreaterEqual(int(body["updated"]), 1)
+
+        db = self.SessionLocal()
+        try:
+            media = db.query(MediaItem).filter(MediaItem.id == media_id).first()
+            analysis = db.query(AnalysisResult).filter(AnalysisResult.item_id == media_id).first()
+            self.assertIsNone(media)
+            self.assertIsNone(analysis)
+        finally:
+            db.close()
+
 
 if __name__ == "__main__":
     unittest.main()
+

@@ -1,13 +1,13 @@
 ﻿#!/usr/bin/env bash
 set -euo pipefail
 
-REPO_DIR="${REPO_DIR:-${PWD}}"
-BASE_URL="${BASE_URL:-http://localhost:5055}"
+REPO_DIR="${REPO_DIR:-/mnt/cache/sync/codex}"
+BASE_URL="${BASE_URL:-http://10.105.2.70:5055}"
 PAGE_SIZE_LIST="${PAGE_SIZE_LIST:-500,1000,2000,4000}"
 MOVIE_LIBS="${MOVIE_LIBS:-}"
 TV_LIBS="${TV_LIBS:-}"
-OUTPUT_DIR="${OUTPUT_DIR:-${PWD}/tasks/reports/page-size-benchmark}"
-VALIDATE_SCRIPT="${VALIDATE_SCRIPT:-${PWD}/tasks/validate_sync_performance.sh}"
+OUTPUT_DIR="${OUTPUT_DIR:-/mnt/cache/sync/codex/tasks/reports/page-size-benchmark}"
+VALIDATE_SCRIPT="${VALIDATE_SCRIPT:-/mnt/cache/sync/codex/tasks/validate_sync_performance.sh}"
 HEALTH_TIMEOUT_SECONDS="${HEALTH_TIMEOUT_SECONDS:-180}"
 
 if ! command -v jq >/dev/null 2>&1; then
@@ -32,7 +32,7 @@ IFS=',' read -r -a page_sizes <<< "$PAGE_SIZE_LIST"
 wait_health() {
   local deadline=$(( $(date +%s) + HEALTH_TIMEOUT_SECONDS ))
   while [[ $(date +%s) -lt "$deadline" ]]; do
-    if curl -fsS "${BASE_URL}/health" >/dev/null 2>&1; then
+    if curl -fsS "${BASE_URL}/api/health" >/dev/null 2>&1; then
       return 0
     fi
     sleep 2

@@ -1,13 +1,13 @@
 ﻿#!/usr/bin/env bash
 set -euo pipefail
 
-BASE_URL="${BASE_URL:-http://localhost:5055}"
+BASE_URL="${BASE_URL:-http://10.105.2.70:5055}"
 MOVIE_LIBS="${MOVIE_LIBS:-}"
 TV_LIBS="${TV_LIBS:-}"
 CONCURRENCY_LIST="${CONCURRENCY_LIST:-1,4,8}"
 POLL_INTERVAL_SECONDS="${POLL_INTERVAL_SECONDS:-2}"
 TIMEOUT_MINUTES="${TIMEOUT_MINUTES:-180}"
-OUTPUT_DIR="${OUTPUT_DIR:-./tasks/reports/sync-performance}"
+OUTPUT_DIR="${OUTPUT_DIR:-/mnt/cache/sync/codex/tasks/reports/sync-performance}"
 KEEP_TEST_SETTINGS="${KEEP_TEST_SETTINGS:-0}"
 
 if ! command -v curl >/dev/null 2>&1; then
@@ -48,18 +48,18 @@ csv_to_json_array() {
 
 api_get() {
   local path="$1"
-  curl -fsS "${BASE_URL}${path}"
+  curl -fsS "${BASE_URL}/api${path}"
 }
 
 api_post_empty() {
   local path="$1"
-  curl -fsS -X POST "${BASE_URL}${path}" -H "Content-Type: application/json"
+  curl -fsS -X POST "${BASE_URL}/api${path}" -H "Content-Type: application/json"
 }
 
 api_put_json_file() {
   local path="$1"
   local file="$2"
-  curl -fsS -X PUT "${BASE_URL}${path}" -H "Content-Type: application/json" --data @"$file"
+  curl -fsS -X PUT "${BASE_URL}/api${path}" -H "Content-Type: application/json" --data @"$file"
 }
 
 wait_sync_idle() {

@@ -5,16 +5,16 @@ set -euo pipefail
 # WARNING: execute mode triggers real DeleteVersion requests.
 #
 # Defaults are prefilled for current environment:
-#   BASE_URL=http://localhost:5055
-#   TOKEN=change-me
+#   BASE_URL=http://10.105.2.70:5055
+#   TOKEN=paysen
 #
 # Examples:
 #   ./tasks/validate_delete_webhook_flow.sh --mode preview
 #   ./tasks/validate_delete_webhook_flow.sh --mode execute --item-ids 101,102
 #   ./tasks/validate_delete_webhook_flow.sh --mode execute --group-ids movie:12345 --poll-seconds 180
 
-BASE_URL="${BASE_URL:-http://localhost:5055}"
-TOKEN="${TOKEN:-change-me}"
+BASE_URL="${BASE_URL:-http://10.105.2.70:5055}"
+TOKEN="${TOKEN:-paysen}"
 MODE="preview"
 ITEM_IDS=""
 GROUP_IDS=""
@@ -43,8 +43,8 @@ Options:
   --poll-interval N             Poll interval seconds. Default: 3
   --latest-only true|false      For /delete/queue/status. Default: true
   --limit N                     Queue status limit. Default: 20
-  --base-url URL                Default: env BASE_URL or http://localhost:5055
-  --token TOKEN                 Default: env TOKEN or change-me
+  --base-url URL                Default: env BASE_URL or http://10.105.2.70:5055
+  --token TOKEN                 Default: env TOKEN or paysen
   -h, --help
 
 Environment:
@@ -77,7 +77,7 @@ require_bin jq
 
 api_get() {
   local path="$1"
-  curl -sS --fail "${BASE_URL}${path}"
+  curl -sS --fail "${BASE_URL}/api${path}"
 }
 
 api_post_json() {
@@ -87,10 +87,10 @@ api_post_json() {
     -H 'Content-Type: application/json' \
     -X POST \
     -d "$body" \
-    "${BASE_URL}${path}"
+    "${BASE_URL}/api${path}"
 }
 
-echo "[1/5] Health check: ${BASE_URL}/health"
+echo "[1/5] Health check: ${BASE_URL}/api/health"
 HEALTH="$(api_get "/health")"
 echo "$HEALTH" | jq .
 

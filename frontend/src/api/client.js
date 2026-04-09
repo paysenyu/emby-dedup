@@ -1,11 +1,14 @@
 ﻿const rawBase = import.meta.env.VITE_API_BASE_URL;
 const API_BASE_URL = typeof rawBase === "string" ? rawBase.trim().replace(/\/$/, "") : "";
+const API_PREFIX = "/api";
 
 function buildUrl(path) {
+  const normalized = path.startsWith("/") ? path : `/${path}`;
+  const prefixed = normalized.startsWith(`${API_PREFIX}/`) ? normalized : `${API_PREFIX}${normalized}`;
   if (API_BASE_URL) {
-    return `${API_BASE_URL}${path}`;
+    return `${API_BASE_URL}${prefixed}`;
   }
-  return path;
+  return prefixed;
 }
 
 async function request(path, options = {}) {
@@ -75,4 +78,3 @@ export const api = {
       body: JSON.stringify(payload),
     }),
 };
-

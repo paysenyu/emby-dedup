@@ -9,12 +9,12 @@ set -euo pipefail
 # - Show episode IDs under each series for season/episode mapping checks.
 #
 # Defaults:
-#   DEDUP_BASE_URL=http://localhost:5055
+#   DEDUP_BASE_URL=http://10.105.2.70:5055
 #
 # Example:
 #   bash ./tasks/inspect_emby_entities.sh --name "閽㈤搧妫灄" --targets 1104830,1104831,1104832
 
-DEDUP_BASE_URL="${DEDUP_BASE_URL:-http://localhost:5055}"
+DEDUP_BASE_URL="${DEDUP_BASE_URL:-http://10.105.2.70:5055}"
 NAME=""
 TARGETS=""
 EP_LIMIT=2000
@@ -34,7 +34,7 @@ Usage:
 Options:
   --name "鍓у悕"                 Required for series/entity scan
   --targets 1101,1102          Optional target IDs for /Items/{id} existence checks
-  --dedup-base-url URL         Default: env DEDUP_BASE_URL or http://localhost:5055
+  --dedup-base-url URL         Default: env DEDUP_BASE_URL or http://10.105.2.70:5055
   --episode-limit N            Default: 2000
   -h, --help
 EOF
@@ -59,13 +59,13 @@ if [[ -z "$NAME" ]]; then
   exit 1
 fi
 
-SETTINGS_JSON="$(curl -sS --fail "${DEDUP_BASE_URL}/settings")"
+SETTINGS_JSON="$(curl -sS --fail "${DEDUP_BASE_URL}/api/settings")"
 EMBY_BASE_URL="$(echo "$SETTINGS_JSON" | jq -r '.emby.base_url // empty')"
 EMBY_API_KEY="$(echo "$SETTINGS_JSON" | jq -r '.emby.api_key // empty')"
 EMBY_USER_ID="$(echo "$SETTINGS_JSON" | jq -r '.emby.user_id // empty')"
 
 if [[ -z "$EMBY_BASE_URL" || -z "$EMBY_API_KEY" || -z "$EMBY_USER_ID" ]]; then
-  echo "Failed to load Emby settings from ${DEDUP_BASE_URL}/settings" >&2
+  echo "Failed to load Emby settings from ${DEDUP_BASE_URL}/api/settings" >&2
   exit 1
 fi
 

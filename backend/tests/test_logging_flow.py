@@ -1,4 +1,4 @@
-import logging
+﻿import logging
 import os
 import tempfile
 import unittest
@@ -196,7 +196,7 @@ class LoggingFlowTests(unittest.TestCase):
         app.dependency_overrides[get_db] = _override_get_db
         client = TestClient(app)
         response = client.post(
-            "/webhook/emby?token=tok",
+            "/api/webhook/emby?token=tok",
             json={"Event": "system.webhooktest", "Title": "Ping", "ItemId": "none"},
         )
         self.assertEqual(response.status_code, 200)
@@ -233,3 +233,4 @@ class LoggingFlowTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+

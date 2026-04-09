@@ -1,5 +1,5 @@
 ﻿param(
-    [string]$BaseUrl = "http://localhost:5055",
+    [string]$BaseUrl = "http://10.105.2.70:5055",
     [string[]]$MovieLibraries = @(),
     [string[]]$TvLibraries = @(),
     [int[]]$ConcurrencyList = @(1, 4, 8),
@@ -114,7 +114,7 @@ function Validate-Libraries {
     }
 }
 
-$apiBase = $BaseUrl.TrimEnd("/")
+$apiBase = "$($BaseUrl.TrimEnd("/"))/api"
 $runId = Get-Date -Format "yyyyMMdd-HHmmss"
 $runDir = Join-Path $OutputDir $runId
 New-Item -ItemType Directory -Path $runDir -Force | Out-Null
@@ -296,6 +296,7 @@ Write-Host "Done."
 Write-Host "JSON: $jsonPath"
 Write-Host "CSV : $csvPath"
 Write-Host "MD  : $mdPath"
+
 
 
 

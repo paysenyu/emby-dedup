@@ -13,7 +13,7 @@ set -euo pipefail
 #   bash ./tasks/harmonize_provider_ids.sh --name "????"
 #   bash ./tasks/harmonize_provider_ids.sh --name "????" --apply
 
-DEDUP_BASE_URL="${DEDUP_BASE_URL:-http://localhost:5055}"
+DEDUP_BASE_URL="${DEDUP_BASE_URL:-http://10.105.2.70:5055}"
 NAME_FILTER=""
 INCLUDE_ITEM_TYPES="Episode,Movie,Series"
 LIMIT=20000
@@ -35,7 +35,7 @@ Options:
   --name "keyword"            Optional search term (recommended for first run)
   --item-types "Episode,Movie,Series"  Default: Episode,Movie,Series
   --limit N                    Default: 20000
-  --dedup-base-url URL         Default: env DEDUP_BASE_URL or http://localhost:5055
+  --dedup-base-url URL         Default: env DEDUP_BASE_URL or http://10.105.2.70:5055
   --apply                      Apply updates to Emby (default is dry-run)
   -h, --help
 
@@ -60,13 +60,13 @@ done
 require_bin curl
 require_bin jq
 
-SETTINGS_JSON="$(curl -sS --fail "${DEDUP_BASE_URL}/settings")"
+SETTINGS_JSON="$(curl -sS --fail "${DEDUP_BASE_URL}/api/settings")"
 EMBY_BASE_URL="$(echo "$SETTINGS_JSON" | jq -r '.emby.base_url // empty')"
 EMBY_API_KEY="$(echo "$SETTINGS_JSON" | jq -r '.emby.api_key // empty')"
 EMBY_USER_ID="$(echo "$SETTINGS_JSON" | jq -r '.emby.user_id // empty')"
 
 if [[ -z "$EMBY_BASE_URL" || -z "$EMBY_API_KEY" || -z "$EMBY_USER_ID" ]]; then
-  echo "Failed to load Emby settings from ${DEDUP_BASE_URL}/settings" >&2
+  echo "Failed to load Emby settings from ${DEDUP_BASE_URL}/api/settings" >&2
   exit 1
 fi
 

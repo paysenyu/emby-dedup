@@ -1,7 +1,7 @@
-# API Design (V1)
+﻿# API Design (V1)
 
 ## Health
-### GET /health
+### GET /api/health
 Returns service health.
 
 Response:
@@ -14,10 +14,10 @@ Response:
 ---
 
 ## Settings
-### GET /settings
+### GET /api/settings
 Returns persisted application settings.
 
-### PUT /settings
+### PUT /api/settings
 Updates application settings.
 
 Suggested payload:
@@ -42,7 +42,7 @@ Suggested payload:
 ---
 
 ## Libraries
-### GET /libraries
+### GET /api/libraries
 Fetch available libraries from Emby.
 
 Response example:
@@ -58,14 +58,14 @@ Response example:
 ---
 
 ## Sync
-### POST /sync
+### POST /api/sync
 Trigger full sync.
 
 Possible behavior:
 - async background task with status tracking
 - returns task id / current status
 
-### GET /sync/status
+### GET /api/sync/status
 Return current or last sync status.
 
 Response example:
@@ -82,10 +82,10 @@ Response example:
 ---
 
 ## Rules
-### GET /rules
+### GET /api/rules
 Return current rule configuration.
 
-### PUT /rules
+### PUT /api/rules
 Persist new rule configuration.
 
 Payload example:
@@ -111,10 +111,10 @@ Payload example:
 ---
 
 ## Analysis
-### POST /analysis/run
+### POST /api/analysis/run
 Rebuild analysis results using latest synced media snapshot.
 
-### GET /analysis/groups
+### GET /api/analysis/groups
 List duplicate groups.
 
 Suggested query params:
@@ -124,7 +124,7 @@ Suggested query params:
 - protected_only
 - has_manual_override
 
-### GET /analysis/groups/{group_id}
+### GET /api/analysis/groups/{group_id}
 Return group detail:
 - media identity
 - keep recommendation
@@ -132,7 +132,7 @@ Return group detail:
 - protected items
 - item metadata
 
-### PUT /analysis/groups/{group_id}/override
+### PUT /api/analysis/groups/{group_id}/override
 Manually choose keep item and update delete candidates.
 
 Payload example:
@@ -145,11 +145,11 @@ Payload example:
 ---
 
 ## Delete
-### POST /delete/preview
+### POST /api/delete/preview
 Return what would be deleted for current confirmed selection.
 
-### POST /delete/execute
-Execute delete via emby 神医 API for selected delete candidates.
+### POST /api/delete/execute
+Execute delete via emby 绁炲尰 API for selected delete candidates.
 
 Payload example:
 ```json
@@ -173,19 +173,19 @@ Response example:
 ---
 
 ## Logs
-### GET /logs
+### GET /api/logs
 List operation logs.
 
 ---
 
 ## Webhook
-### POST /webhook/emby
+### POST /api/webhook/emby
 Emby/StrmAssistant webhook endpoint.
 
 Port convention:
 - Use unified service port `5055`.
 - Example callback URL:
-  - `http://<dup-host>:5055/webhook/emby?token=<webhook-token>`
+  - `http://<dup-host>:5055/api/webhook/emby?token=<webhook-token>`
 
 Supported content types:
 - `application/json`
@@ -202,3 +202,4 @@ Notes:
   "updated": 0
 }
 ```
+

@@ -20,17 +20,19 @@ from app.core.logging_setup import init_logging
 from app.core.version import APP_VERSION
 from app.db.init_db import init_db
 
+API_PREFIX = "/api"
+
 app = FastAPI(title="Emby Dedup API", version=APP_VERSION)
-app.include_router(health_router)
-app.include_router(settings_router)
-app.include_router(libraries_router)
-app.include_router(sync_router)
-app.include_router(rules_router)
-app.include_router(analysis_router)
-app.include_router(metadata_router)
-app.include_router(delete_router)
-app.include_router(webhook_router)
-app.include_router(dashboard_router)
+app.include_router(health_router, prefix=API_PREFIX)
+app.include_router(settings_router, prefix=API_PREFIX)
+app.include_router(libraries_router, prefix=API_PREFIX)
+app.include_router(sync_router, prefix=API_PREFIX)
+app.include_router(rules_router, prefix=API_PREFIX)
+app.include_router(analysis_router, prefix=API_PREFIX)
+app.include_router(metadata_router, prefix=API_PREFIX)
+app.include_router(delete_router, prefix=API_PREFIX)
+app.include_router(webhook_router, prefix=API_PREFIX)
+app.include_router(dashboard_router, prefix=API_PREFIX)
 
 
 @app.on_event("startup")
@@ -44,16 +46,7 @@ _FRONTEND_DIST = Path("/app/frontend_dist")
 _INDEX_HTML = _FRONTEND_DIST / "index.html"
 _ASSETS_DIR = _FRONTEND_DIST / "assets"
 _RESERVED_PREFIXES = (
-    "health",
-    "settings",
-    "libraries",
-    "sync",
-    "rules",
-    "analysis",
-    "metadata",
-    "delete",
-    "dashboard",
-    "webhook",
+    "api",
     "docs",
     "redoc",
     "openapi.json",
