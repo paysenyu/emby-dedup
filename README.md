@@ -1,4 +1,19 @@
-﻿# emby-dedup
+功能
+同步emby媒体数据
+采用SQLite数据库
+根据媒体信息洗板去重
+缺失元数据列表
+
+去重说明：
+按规则进行emby存量去重，如库内存在4k HDR ，4k SDR ， 1080p
+
+根据自定义规则， 即删除4k sdr 和1080p  仅保留4k HDR版本
+
+适合人群 ：仅限已安装神医pro用户，cd2方式挂载 ，可联动删除115网盘资源
+
+ 
+ 
+ # emby-dedup
 
 Open-source duplicate cleanup toolkit for Emby.
 
