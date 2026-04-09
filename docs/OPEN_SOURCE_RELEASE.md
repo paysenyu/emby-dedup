@@ -35,6 +35,16 @@ This folder contains sanitized files for publishing to GitHub and Docker Hub.
 4. Verify Docker Hub README/description and pull command.
 
 ## 4. Suggested release tags
-- GitHub: `v0.1.0`, `v0.1.1`, ...
+- GitHub: `v0.0.1`, `v0.0.2`, ...
 - Docker: same as GitHub tag plus `latest`.
+
+## 5. How to release after future updates
+1. Develop and verify new features in your working folder.
+2. Bump `backend/app/core/version.py` (for example `0.0.1` -> `0.0.2`).
+3. Sync open-source cleanup files if needed (from `release-package/`).
+4. Commit to `main` (or merge from a feature branch).
+5. Create and push git tag `v0.0.2`.
+6. Build and push Docker image tags:
+   - `<dockerhub-user>/emby-dedup:0.0.2`
+   - `<dockerhub-user>/emby-dedup:latest`
 

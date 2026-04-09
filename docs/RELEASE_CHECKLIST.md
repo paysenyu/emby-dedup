@@ -8,7 +8,7 @@
 
 ## B. Functional baseline check
 - [ ] `docker compose up --build` works on clean machine.
-- [ ] `/health` endpoint returns OK.
+- [ ] `/health` endpoint returns OK and expected version.
 - [ ] Frontend homepage loads from port 5055.
 - [ ] Settings can be saved with example config shape.
 

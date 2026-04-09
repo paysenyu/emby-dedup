@@ -17,6 +17,8 @@
 
 Open-source duplicate cleanup toolkit for Emby.
 
+Current version: `0.0.1`
+
 ## Features
 - Sync media snapshots from Emby into SQLite.
 - Analyze duplicate media versions with rule-based ranking.
@@ -52,6 +54,15 @@ Open-source duplicate cleanup toolkit for Emby.
 ## Publish Notes
 This repository includes `release-package/` for open-source release cleanup.
 Use files in that folder to replace private/local values before publishing.
+
+## Versioning
+- Current version source of truth: `backend/app/core/version.py`
+- Release tag format: `vX.Y.Z` (for example `v0.0.1`)
+- For each feature release:
+  1. Update `APP_VERSION`
+  2. Commit and push
+  3. Create Git tag
+  4. Publish GitHub Release and Docker image with the same tag
 
 ## Security Notes
 - Never commit real API keys/tokens.

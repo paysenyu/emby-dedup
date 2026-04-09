@@ -17,9 +17,10 @@ from app.api.settings import router as settings_router
 from app.api.sync import router as sync_router
 from app.api.webhook import router as webhook_router
 from app.core.logging_setup import init_logging
+from app.core.version import APP_VERSION
 from app.db.init_db import init_db
 
-app = FastAPI(title="Emby Dedup API", version="0.1.0")
+app = FastAPI(title="Emby Dedup API", version=APP_VERSION)
 app.include_router(health_router)
 app.include_router(settings_router)
 app.include_router(libraries_router)
