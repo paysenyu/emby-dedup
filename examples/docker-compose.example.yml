@@ -1,4 +1,6 @@
-﻿services:
+﻿version: "3.9"
+
+services:
   emby-dedup:
     build: .
     container_name: emby-dedup
@@ -7,8 +9,7 @@
     volumes:
       - ./config:/config
     environment:
-      - APP_CONFIG_PATH=/config/config.json
       - APP_DB_PATH=/config/app.db
+      - APP_CONFIG_PATH=/config/config.json
       - APP_LOGS_DIR=/config/logs
-      - TZ=UTC
     restart: unless-stopped

@@ -1,24 +1,26 @@
-# Python standard ignores
-*.pyc
+﻿# Python
 __pycache__/
+*.pyc
 *.pyo
-*.pyd
-.Python
-env/
-bin/
-include/
-lib/
-share/
-venv/
-# Pytest
-.cache
-# mypy
-.mypy_cache/
 
-# Project ignores
-*.log
-*.env
-*.DS_Store
-emby/
-postgres_data/
-logs/
+# Virtual env
+.venv/
+venv/
+
+# Local runtime data (contains private settings/logs/db)
+config/
+backend/app.db
+*.db
+*.db-*
+
+# Build/dependency outputs
+frontend/node_modules/
+frontend/dist/
+
+# Benchmark and local reports
+tasks/reports/
+
+# Local handoff scratch files
+交接*.txt
+常用命令.txt
+done

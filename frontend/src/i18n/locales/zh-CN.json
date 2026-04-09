@@ -1,0 +1,276 @@
+﻿{
+  "app": {
+    "title": "Emby 去重工具",
+    "nav": {
+      "dashboard": "仪表盘",
+      "settings": "设置",
+      "analysisGroups": "洗板去重",
+      "metadataIssues": "元数据问题"
+    }
+  },
+  "common": {
+    "loading": "加载中...",
+    "reload": "刷新",
+    "save": "保存",
+    "close": "关闭",
+    "cancel": "取消",
+    "confirm": "确认",
+    "none": "无",
+    "unknown": "-",
+    "item": "条目",
+    "actions": "操作",
+    "status": {
+      "idle": "空闲",
+      "running": "运行中",
+      "success": "成功",
+      "failed": "失败",
+      "completed": "已完成",
+      "skipped": "已跳过",
+      "pending": "等待中",
+      "done": "已完成",
+      "in_progress": "处理中"
+    },
+    "step": {
+      "initializing": "初始化",
+      "loading_settings": "加载设置",
+      "discover_libraries": "识别媒体库",
+      "list_libraries": "读取媒体库",
+      "list_library_items": "读取媒体条目",
+      "get_item_detail": "获取条目详情",
+      "normalize_items": "归一化媒体数据",
+      "rebuilding_media_items": "重建本地媒体数据",
+      "running_analysis": "执行分析",
+      "completed": "已完成",
+      "failed": "失败"
+    },
+    "subtitle": {
+      "chinese": "中文",
+      "none": "无"
+    }
+  },
+  "dashboard": {
+    "title": "仪表盘",
+    "refresh": "刷新",
+    "loadFailed": "加载失败: {message}",
+    "cards": {
+      "movieCount": "电影数量",
+      "seriesCount": "剧集数量",
+      "episodeCount": "集数",
+      "storageTotal": "总存储"
+    },
+    "desc": "显示 Emby 媒体库统计信息。"
+  },
+  "settings": {
+    "title": "设置与同步",
+    "buttons": {
+      "loadLibraries": "加载媒体库",
+      "saveSettings": "保存设置",
+      "triggerSync": "开始同步",
+      "refreshStatus": "刷新状态"
+    },
+    "sections": {
+      "connection": "连接信息",
+      "scope": "同步范围",
+      "syncStatus": "同步状态"
+    },
+    "fields": {
+      "embyBaseUrl": "Emby 地址",
+      "embyApiKey": "Emby API Key",
+      "embyUserId": "Emby 用户 ID",
+      "webhookToken": "Webhook Token",
+      "selectedLibraries": "选择媒体库",
+      "excludedPaths": "排除路径（每行一个）",
+      "syncConcurrency": "同步并发数",
+      "state": "状态",
+      "lastResult": "上次结果",
+      "currentStep": "当前步骤",
+      "currentLibrary": "当前媒体库",
+      "lastStarted": "上次开始",
+      "lastFinished": "上次完成",
+      "duration": "耗时",
+      "itemsSynced": "已同步条目",
+      "itemsDiscovered": "已发现条目",
+      "librariesProgress": "媒体库进度",
+      "detailRequests": "详情补拉进度",
+      "currentPage": "当前分页",
+      "failedItems": "失败条目",
+      "lastAnalysis": "上次分析",
+      "analysisGroups": "分析分组数",
+      "phaseStartedAt": "阶段开始时间",
+      "timings": "阶段耗时",
+      "analysisError": "分析错误",
+      "error": "错误信息"
+    },
+    "placeholders": {
+      "embyBaseUrl": "例如: http://emby:8096",
+      "embyApiKey": "输入 Emby API Key",
+      "embyUserId": "输入 Emby 用户 ID",
+      "webhookToken": "输入 webhook 校验 token",
+      "excludedPaths": "例如: /mnt/media/protected"
+    },
+    "messages": {
+      "loadingSettings": "正在加载设置...",
+      "loadingLibrariesAuto": "正在自动加载媒体库...",
+      "librariesHint": "请先加载媒体库后再勾选。",
+      "loadedLibraries": "已加载 {count} 个媒体库",
+      "settingsSaved": "设置已保存",
+      "syncTriggered": "同步已触发",
+      "refreshingStatus": "正在刷新状态...",
+      "runningLine": "同步进行中：{step}",
+      "runningLineWithLibrary": "同步进行中：{step}（媒体库：{library}）",
+      "runningSub": "已同步 {synced} 项，失败 {failed} 项",
+      "runningDiscover": "媒体库 {librariesCompleted}/{librariesTotal}，已发现 {discovered} 项",
+      "runningFallback": "详情补拉 {completed}/{total}，当前页大小 {pageSize}（第 {page} 页）",
+      "loadSettingsFailed": "加载设置失败: {message}",
+      "loadLibrariesFailed": "加载媒体库失败: {message}",
+      "autoLoadLibrariesFailed": "自动加载媒体库失败: {message}",
+      "saveSettingsFailed": "保存设置失败: {message}",
+      "fetchStatusFailed": "获取状态失败: {message}",
+      "triggerSyncFailed": "触发同步失败: {message}"
+    }
+  },
+  "analysis": {
+    "title": "洗板去重",
+    "ruleSummaryPrefix": "规则摘要",
+    "noRules": "未配置规则",
+    "top": {
+      "selectedCount": "已选择 {count} 项",
+      "oneClickCleanup": "一键清理",
+      "rulesSettings": "规则设置",
+      "scanDuplicates": "扫描重复",
+      "executeDelete": "执行删除",
+      "viewLogs": "查看日志",
+      "cleaning": "清理中...",
+      "scanning": "扫描中...",
+      "deleting": "删除中..."
+    },
+    "statusBar": {
+      "groups": "分组: {count}",
+      "lastAnalysis": "上次分析: {time}",
+      "lastGroupCount": "上次分组数: {count}",
+      "metadataIssues": "元数据问题: {count}",
+      "resetSelection": "重置选择",
+      "reload": "刷新"
+    },
+    "messages": {
+      "groupsLoaded": "已加载 {count} 个分析分组",
+      "groupsLoadFailed": "加载分析分组失败: {message}",
+      "detailsLoadFailed": "加载分组详情失败({groupId}): {message}",
+      "scanDone": "分析完成，共 {groups} 组，{items} 项",
+      "scanFailed": "扫描失败: {message}",
+      "cleanupFailed": "清理失败: {message}",
+      "deleteFailed": "删除失败: {message}",
+      "needPick": "请至少选择一项可删除条目",
+      "loadedRowsEmpty": "暂无行数据",
+      "noGroups": "暂无可用分析分组",
+      "loadingGroups": "正在加载分析分组...",
+      "loadingDetails": "正在加载分组详情...",
+      "deleteResult": "{label} 结果：成功 {success} 条，失败 {failed} 条",
+      "manualKeepWarn": "当前选择中包含 {count} 条手动保留项，无法删除",
+      "manualKeepHint": "手动保留 {count} 条"
+    },
+    "table": {
+      "pick": "选择",
+      "status": "状态",
+      "id": "删除目标 ID",
+      "resolution": "分辨率",
+      "effect": "特效",
+      "codec": "编码",
+      "subtitle": "字幕",
+      "bitrate": "码率",
+      "bitDepth": "位深",
+      "frameRate": "帧率",
+      "runtime": "时长",
+      "fileSize": "文件大小",
+      "path": "路径"
+    },
+    "group": {
+      "unnamed": "（未命名）",
+      "tmdb": "TMDb: {id}",
+      "itemCount": "{count} 项"
+    },
+    "statusBadge": {
+      "manual": "手动保留"
+    },
+    "rules": {
+      "drawerTitle": "规则设置",
+      "enable": "启用",
+      "priority": "优先级：{value}",
+      "loadFailed": "加载规则失败: {message}",
+      "saveFailed": "保存规则失败: {message}",
+      "savedRerun": "规则已保存，正在自动重新分析...",
+      "editPriority": "调整分类优先级",
+      "priorityModalTitle": "分类优先级",
+      "priorityModalDesc": "拖拽调整固定选项顺序。",
+      "saveRules": "保存规则",
+      "saving": "保存中...",
+      "ruleLabels": {
+        "subtitle": "字幕",
+        "runtime": "时长",
+        "effect": "特效",
+        "resolution": "分辨率",
+        "bit_depth": "位深",
+        "bitrate": "码率",
+        "codec": "编码",
+        "filesize": "文件大小",
+        "date_added": "添加时间",
+        "frame_rate": "帧率"
+      }
+    },
+    "logs": {
+      "title": "执行日志",
+      "success": "成功 {count} 条",
+      "failed": "失败 {count} 条",
+      "freed": "释放空间 {size}",
+      "recentLimit": "仅显示最近 {count} 条记录（刷新后保留）",
+      "clear": "清空日志",
+      "empty": "暂无日志",
+      "time": "时间",
+      "group": "分组",
+      "tmdb": "TMDb",
+      "item": "条目",
+      "episode": "集数",
+      "itemHint": "删除目标 ID（非本地数据库自增ID）",
+      "status": "状态",
+      "code": "代码",
+      "message": "消息",
+      "prevPage": "上一页",
+      "nextPage": "下一页",
+      "page": "第 {current}/{total} 页"
+    }
+  },
+  "metadataIssues": {
+    "title": "元数据问题",
+    "refreshMetadata": "刷新元数据",
+    "reload": "刷新",
+    "loaded": "已加载 {count} 条元数据问题",
+    "loadFailed": "加载失败: {message}",
+    "refreshTodo": "请刷新后再操作",
+    "loading": "加载中...",
+    "empty": "暂无元数据问题",
+    "columns": {
+      "title": "标题",
+      "embyItemId": "Emby ID",
+      "mediaSourceId": "媒体源 ID",
+      "tmdbId": "TMDb ID",
+      "issueType": "问题类型",
+      "path": "路径"
+    },
+    "issueType": {
+      "missing_tmdb": "缺失 TMDb ID",
+      "invalid_tmdb": "无效 TMDb ID"
+    }
+  },
+  "legacy": {
+    "rules": {
+      "title": "规则设置",
+      "saveRules": "保存规则"
+    },
+    "deletePreview": {
+      "title": "删除预览"
+    },
+    "groupDetail": {
+      "title": "分组详情"
+    }
+  }
+}

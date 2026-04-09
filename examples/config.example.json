@@ -1,0 +1,22 @@
+﻿{
+  "emby": {
+    "base_url": "http://emby:8096",
+    "api_key": "REPLACE_WITH_EMBY_API_KEY",
+    "user_id": "REPLACE_WITH_EMBY_USER_ID"
+  },
+  "libraries": [
+    "Movies",
+    "TV Shows"
+  ],
+  "excluded_paths": [
+    "/media/protected"
+  ],
+  "sync": {
+    "concurrency": 4
+  },
+  "shenyi": {
+    "base_url": "http://emby-shenyi:8080",
+    "api_key": ""
+  },
+  "webhook_token": "REPLACE_WITH_WEBHOOK_TOKEN"
+}

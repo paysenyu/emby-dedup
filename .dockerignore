@@ -1,0 +1,16 @@
+﻿.git
+.gitignore
+config
+backend/app.db
+*.db
+*.db-*
+frontend/node_modules
+frontend/dist
+tasks/reports
+__pycache__
+*.pyc
+*.pyo
+*.log
+交接*.txt
+常用命令.txt
+done
